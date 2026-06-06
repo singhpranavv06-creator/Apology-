@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Timeline Recovery</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:black;
+    font-family:'Space Mono', monospace;
+    color:white;
+}
+
+body{
+    position:relative;
+}
+
+/* STAR FIELD */
+
+.stars{
+    position:fixed;
+    inset:0;
+    overflow:hidden;
+    z-index:-3;
+}
+
+.star{
+    position:absolute;
+    width:2px;
+    height:2px;
+    background:white;
+    opacity:.6;
+    border-radius:50%;
+    animation:float linear infinite;
+}
+
+@keyframes float{
+    from{
+        transform:translateY(0px);
+    }
+    to{
+        transform:translateY(-120vh);
+    }
+}
+
+/* BACKGROUND GRADIENT */
+
+.bgGlow{
+    position:fixed;
+    inset:0;
+    background:
+    radial-gradient(circle at center, rgba(255,255,255,0.03), transparent 60%);
+    z-index:-2;
+    transition:4s ease;
+}
+
+.sunrise{
+    background:
+    radial-gradient(circle at bottom,
+    rgba(255,160,90,0.25),
+    rgba(255,120,60,0.08),
+    rgba(0,0,0,1) 70%);
+}
+
+/* GLITCH */
+
+.glitch{
+    position:relative;
+    animation:glitch 4s infinite;
+}
+
+@keyframes glitch{
+    0%,95%,100%{
+        transform:none;
+        opacity:1;
+    }
+    96%{
+        transform:translateX(2px);
+        opacity:.7;
+    }
+    97%{
+        transform:translateX(-2px);
+    }
+    98%{
+        transform:translateX(1px);
+    }
+}
+
+/* SCREENS */
+
+.screen{
+    position:absolute;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+    padding:24px;
+    text-align:center;
+    transition:1.2s ease;
+}
+
+.hidden{
+    opacity:0;
+    pointer-events:none;
+}
+
+/* TERMINAL */
+
+.terminal{
+    max-width:850px;
+    width:100%;
+    color:#d6d6d6;
+    line-height:1.9;
+    font-size:clamp(14px,2vw,18px);
+}
+
+.line{
+    opacity:0;
+    white-space:pre-wrap;
+}
+
+.show{
+    animation:fadeIn .8s forwards;
+}
+
+@keyframes fadeIn{
+    to{
+        opacity:1;
+    }
+}
+
+.red{
+    color:#ff6464;
+}
+
+.dim{
+    opacity:.55;
+    font-size:.85rem;
+}
+
+.loadingWrap{
+    margin-top:28px;
+    width:100%;
+    border:1px solid rgba(255,255,255,.2);
+    height:24px;
+    overflow:hidden;
+}
+
+.loadingBar{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,#999,#fff);
+    animation:load 4s forwards;
+}
+
+@keyframes load{
+    0%{width:0%;}
+    70%{width:67%;}
+    100%{width:67%;}
+}
+
+.glitchFreeze{
+    animation:freeze .3s infinite;
+}
+
+@keyframes freeze{
+    0%{opacity:1;}
+    50%{opacity:.4;}
+    100%{opacity:1;}
+}
+
+/* BUTTONS */
+
+.btn{
+    margin-top:40px;
+    padding:14px 34px;
+    border:1px solid rgba(255,255,255,.4);
+    background:transparent;
+    color:white;
+    font-size:16px;
+    letter-spacing:3px;
+    cursor:pointer;
+    transition:.4s ease;
+    backdrop-filter:blur(6px);
+}
+
+.btn:hover{
+    background:rgba(255,255,255,.08);
+    transform:translateY(-2px);
+    box-shadow:0 0 20px rgba(255,255,255,.08);
+}
+
+/* QUESTION */
+
+.question{
+    font-size:clamp(24px,4vw,42px);
+    margin-bottom:50px;
+    opacity:0;
+    animation:fadeIn 2s forwards;
+}
+
+.choiceWrap{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+.noBtn{
+    position:relative;
+}
+
+/* LETTER */
+
+.letterContainer{
+    max-width:900px;
+    width:100%;
+    text-align:left;
+    line-height:2;
+    font-size:clamp(15px,2vw,20px);
+    color:#f2f2f2;
+    overflow-y:auto;
+    max-height:90vh;
+    padding-right:10px;
+}
+
+.letterContainer::-webkit-scrollbar{
+    width:4px;
+}
+
+.letterContainer::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,.15);
+}
+
+.paragraph{
+    margin-bottom:34px;
+    opacity:0;
+    transform:translateY(20px);
+    transition:1.5s ease;
+}
+
+.paragraph.visible{
+    opacity:1;
+    transform:translateY(0);
+}
+
+/* ENDING */
+
+.ending{
+    text-align:center;
+}
+
+.floatLine{
+    opacity:0;
+    margin:20px 0;
+    font-size:clamp(18px,3vw,28px);
+    animation:fadeSlow 2s forwards;
+}
+
+@keyframes fadeSlow{
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+.finalText{
+    margin-top:60px;
+    font-size:clamp(30px,6vw,60px);
+    letter-spacing:4px;
+    opacity:0;
+}
+
+.heart{
+    display:block;
+    margin-top:12px;
+    font-size:40px;
+    color:#ffb4b4;
+    text-shadow:0 0 10px rgba(255,180,180,.25);
+}
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+    .terminal{
+        line-height:1.7;
+    }
+
+    .btn{
+        width:180px;
+    }
+
+    .choiceWrap{
+        flex-direction:column;
+        align-items:center;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div class="bgGlow" id="bg"></div>
+
+<!-- INTRO -->
+<section class="screen" id="intro">
+
+    <div class="terminal glitch">
+
+        <div class="line" id="l1"></div>
+        <div class="line" id="l2"></div>
+        <div class="line" id="l3"></div>
+        <div class="line red" id="l4"></div>
+
+        <div class="loadingWrap line" id="loadWrap">
+            <div class="loadingBar glitchFreeze"></div>
+        </div>
+
+        <div class="line dim" id="l5"></div>
+        <div class="line dim" id="l6"></div>
+        <div class="line dim" id="l7"></div>
+
+        <button class="btn hidden" id="enterBtn">[ ENTER ]</button>
+
+    </div>
+</section>
+
+<!-- QUESTION -->
+<section class="screen hidden" id="questionScreen">
+
+    <div class="question">
+        waiting for my msg didn’t you ?
+    </div>
+
+    <div class="choiceWrap">
+        <button class="btn yesBtn">[ YES ]</button>
+        <button class="btn noBtn" id="noBtn">[ NO ]</button>
+    </div>
+
+</section>
+
+<!-- LETTER -->
+<section class="screen hidden" id="letterScreen">
+
+    <div class="letterContainer">
+
+        <div class="paragraph">
+            Aadvika, maybe it feels like I’ve changed… like I don’t chase you the way I used to, like I’ve become quieter, less desperate for your attention.
+        </div>
+
+        <div class="paragraph">
+            But the truth is — I never stopped wanting you the same way. Before, I used to ask for every little moment of you because I was scared of losing it.
+        </div>
+
+        <div class="paragraph">
+            Now your love reaches me on its own, your care comes naturally, and somewhere inside that comfort, my ways became calmer… stronger.
+        </div>
+
+        <div class="paragraph">
+            And maybe from your side it looks like distance, like I’m less involved, less obsessed, less in love.
+        </div>
+
+        <div class="paragraph">
+            But if you could see inside my heart for even a minute, you’d know none of that changed.
+        </div>
+
+        <div class="paragraph">
+            The attraction. The attachment. The overthinking. The way you stay on my mind all day… it’s all still there. If anything, it only grew deeper.
+        </div>
+
+        <div class="paragraph">
+            I think earlier my love looked louder because I was constantly trying to reach you.
+        </div>
+
+        <div class="paragraph">
+            Now I don’t have to beg for your attention anymore, because you gave me a place in your world so naturally.
+        </div>
+
+        <div class="paragraph">
+            And maybe I got too comfortable in that feeling, without realizing it could make you feel unloved.
+        </div>
+
+        <div class="paragraph">
+            And for that… I’m genuinely sorry.
+        </div>
+
+        <div class="paragraph">
+            But harsh with you? Cold with you? Never. Not you.
+        </div>
+
+        <div class="paragraph">
+            How could I ever be cold with the person whose smallest mood changes my entire day?
+        </div>
+
+        <div class="paragraph">
+            I’m still the same guy who gets happy over your texts, who rereads conversations, who waits for your presence even after talking for hours.
+        </div>
+
+        <div class="paragraph">
+            Please don’t mistake comfort for loss of love.
+        </div>
+
+        <div class="paragraph">
+            Because I’m still here.
+            Still yours.
+            In the same old intense way.
+        </div>
+
+    </div>
+
+</section>
+
+<!-- END -->
+<section class="screen hidden ending" id="ending">
+
+    <div class="floatLine">You were never hard to love.</div>
+    <div class="floatLine">Some things are worth repairing slowly.</div>
+    <div class="floatLine">Maybe my love became quieter, but it never became smaller.</div>
+
+    <div class="terminal dim" style="margin-top:40px;">
+        > Timeline stabilized.<br><br>
+        > Connection restored.
+    </div>
+
+    <div class="finalText" id="finalText">
+        Still us.
+        <span class="heart">♡</span>
+    </div>
+
+</section>
+
+<script>
+
+/* STARS */
+
+const stars = document.getElementById("stars");
+
+for(let i=0;i<120;i++){
+
+    const star = document.createElement("div");
+    star.classList.add("star");
+
+    star.style.left = Math.random()*100+"%";
+    star.style.top = Math.random()*100+"%";
+
+    let size = Math.random()*2+1;
+
+    star.style.width = size+"px";
+    star.style.height = size+"px";
+
+    star.style.animationDuration = (Math.random()*20+15)+"s";
+
+    stars.appendChild(star);
+}
+
+/* TYPE EFFECT */
+
+function typeLine(id,text,delay){
+
+    setTimeout(()=>{
+
+        const el = document.getElementById(id);
+        el.classList.add("show");
+
+        let i=0;
+
+        const interval = setInterval(()=>{
+
+            el.innerHTML += text.charAt(i);
+            i++;
+
+            if(i>=text.length){
+                clearInterval(interval);
+            }
+
+        },35);
+
+    },delay);
+}
+
+typeLine("l1","Initializing memory recovery…",500);
+typeLine("l2","ERROR DETECTED",2800);
+typeLine("l3","A critical connection was damaged.",5000);
+typeLine("l4","Cause: Me.",7600);
+
+setTimeout(()=>{
+    document.getElementById("loadWrap").classList.add("show");
+},9200);
+
+typeLine("l5","Recovery impossible without authorized user.",13200);
+typeLine("l6","[ MESSAGE UNSENT ]  “I’m sorry.”",15400);
+typeLine("l7","Last stable timeline: Before the fight.  |  Emotional instability detected.",17600);
+
+setTimeout(()=>{
+    document.getElementById("enterBtn").classList.remove("hidden");
+},20500);
+
+/* TRANSITIONS */
+
+const intro = document.getElementById("intro");
+const questionScreen = document.getElementById("questionScreen");
+const letterScreen = document.getElementById("letterScreen");
+const ending = document.getElementById("ending");
+
+document.getElementById("enterBtn").onclick = ()=>{
+
+    intro.classList.add("hidden");
+
+    setTimeout(()=>{
+        questionScreen.classList.remove("hidden");
+    },1000);
+};
+
+/* NO BUTTON ESCAPE */
+
+const noBtn = document.getElementById("noBtn");
+
+function moveButton(){
+
+    const x = Math.random()*200-100;
+    const y = Math.random()*120-60;
+
+    noBtn.style.transform = `translate(${x}px,${y}px)`;
+}
+
+noBtn.addEventListener("mouseover",moveButton);
+noBtn.addEventListener("click",moveButton);
+
+/* YES */
+
+document.querySelector(".yesBtn").onclick = ()=>{
+
+    questionScreen.classList.add("hidden");
+
+    setTimeout(()=>{
+        letterScreen.classList.remove("hidden");
+
+        const paragraphs = document.querySelectorAll(".paragraph");
+
+        paragraphs.forEach((p,index)=>{
+
+            setTimeout(()=>{
+                p.classList.add("visible");
+
+                if(index===paragraphs.length-1){
+
+                    setTimeout(()=>{
+
+                        letterScreen.classList.add("hidden");
+
+                        setTimeout(()=>{
+
+                            document.getElementById("bg").classList.add("sunrise");
+
+                            ending.classList.remove("hidden");
+
+                            setTimeout(()=>{
+                                document.getElementById("finalText").style.opacity=1;
+                                document.getElementById("finalText").style.transition="3s ease";
+                            },5000);
+
+                        },1200);
+
+                    },5000);
+                }
+
+            },index*3500);
+
+        });
+
+    },1200);
+};
+
+</script>
+
+</body>
+</html>
